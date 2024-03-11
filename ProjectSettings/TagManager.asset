@@ -6,6 +6,12 @@ TagManager:
   tags:
   - Enemy
   - Tower
+  - TowerPlacementManager
+  - Empty Plot
+  - Full Plot
+  - Projectile
+  - Enemy Projectile
+  - Points Manager
   layers:
   - Default
   - TransparentFX
@@ -14,9 +20,9 @@ TagManager:
   - Water
   - UI
   - Post Processing
-  - 
-  - 
-  - 
+  - Plot Layer
+  - Tower Layer
+  - No PP
   - 
   - 
   - 

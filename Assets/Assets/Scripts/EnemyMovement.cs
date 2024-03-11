@@ -5,14 +5,17 @@ using UnityEngine;
 public class EnemyMovement : MonoBehaviour
 {
     private bool isBlocked = false;
-    [SerializeField]
-    private float speed;
-    [SerializeField]
-    private int health;
+    public float speed;
+    public int health;
     public int damage;
     public int pointsOnKill;
     private Rigidbody2D rb;
     private Animator animator;
+    public float hitCooldown;
+    public Transform overlapTransform;
+    public float overlapRadius;
+    public LayerMask towerLayer;
+    private bool startedDamage = false;
 
     private void Start()
     {  
@@ -21,31 +24,66 @@ public class EnemyMovement : MonoBehaviour
     }
     void Update()
     {
-        
-        if (isBlocked == false)
+        if (health <= 0)
         {
-            animator.SetBool("isBlocked", false);
-            rb.velocity = Vector2.left * speed;
-            //Debug.Log("not blocked");
+            GameObject pointsManager = GameObject.FindGameObjectWithTag("Points Manager");
+            PointsManager pointsScript = pointsManager.GetComponent<PointsManager>();
+            pointsScript.points += pointsOnKill;
+            Destroy(gameObject);
+
         }
-        else
+        Collider2D hitTower = Physics2D.OverlapCircle(new Vector2(overlapTransform.position.x, overlapTransform.position.y), overlapRadius, towerLayer);
+        
+        if (hitTower)
         {
+            TowerScript towerScript = hitTower.GetComponent<TowerScript>();
             animator.SetBool("isBlocked", true);
             rb.velocity = Vector2.zero;
-            //Debug.Log("blocked");
-        }
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        bool hitTower = collision.gameObject.CompareTag("Tower");
-        if (hitTower == true)
-        {
+            if (startedDamage == false)
+            {
+                StartCoroutine(Damaging(hitCooldown, towerScript));
+            }
+            startedDamage = true;
             isBlocked = true;
+            //Debug.Log("blocked");
         }
         else
         {
-            isBlocked = false;
+            startedDamage = false;
+            animator.SetBool("isBlocked", false);
+            rb.velocity = Vector2.left * speed;
+            StopAllCoroutines();
+            //Debug.Log("not blocked");
         }
+        
+    }
+
+   // private void OnTriggerEnter2D(Collider2D collision)
+   // {
+   //     bool hitTower = collision.gameObject.CompareTag("Tower");
+   //     TowerScript towerScript = collision.gameObject.GetComponent<TowerScript>();
+   //     if (hitTower == true)
+   //     {
+   //         isBlocked = true;
+   //         StartCoroutine(Damaging(hitCooldown, towerScript));
+   //         Debug.Log("starting damage coroutine");
+   //     }
+   //     if (hitTower == null)
+   //     {
+   //         isBlocked = false;
+   //         StopCoroutine(Damaging(hitCooldown,towerScript));
+   //         Debug.Log("stopping damage coroutine");
+   //     }
+   // }
+
+
+    private IEnumerator Damaging(float hitCooldown, TowerScript towerScript)
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(hitCooldown);
+            towerScript.health -= damage;
+        }
+        
     }
 }
